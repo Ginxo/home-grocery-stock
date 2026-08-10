@@ -1,0 +1,19 @@
+alias: "Home Grocery Stock: Control IA"
+mode: single
+trigger:
+  - platform: state
+    entity_id: binary_sensor.puerta_frigorifico_contact # Tu sensor Aqara
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.puerta_frigorifico_contact
+            state: "on"
+        sequence:
+          - service: rest_command.nevera_ia_encender
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.puerta_frigorifico_contact
+            state: "off"
+        sequence:
+          - service: rest_command.nevera_ia_apagar

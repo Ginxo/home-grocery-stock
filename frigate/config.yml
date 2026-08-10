@@ -1,0 +1,39 @@
+mqtt:
+  host: mosquitto_local
+
+detectors:
+  openvino:
+    type: openvino
+    device: AUTO
+
+model:
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+
+cameras:
+  zona_frigorifico:
+    ffmpeg:
+      inputs:
+        - path: '{FRIGATE_RTSP_PATH}'
+          roles:
+            - detect
+            - record
+    detect:
+      enabled: false
+      width: 1920
+      height: 1080
+      fps: 5 # Bajamos los FPS a 5, es la recomendación oficial de Frigate para no saturar.
+    objects:
+      track:
+        - bottle
+        - cup
+        - chair
+        - couch
+        - potted plant
+        - dining table
+
+version: 0.17-0

@@ -1,0 +1,69 @@
+services:
+  # 1. Local MQTT Broker
+  mosquitto_local:
+    image: eclipse-mosquitto:2
+    container_name: hgs_mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./.data/mosquitto/data:/mosquitto/data
+      - ./.data/mosquitto/log:/mosquitto/log
+
+  # 2. Frigate (AI & Vision)
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:stable
+    container_name: hgs_frigate
+    privileged: true
+    restart: unless-stopped
+    shm_size: "1024m"
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+      - "8554:8554"
+      - "8555:8555/tcp"
+      - "8555:8555/udp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./.data/frigate/config:/config
+      - ./frigate/config.yml:/config/config.yml:ro
+      - ./.data/frigate/storage:/media/frigate
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    depends_on:
+      - mosquitto_local      
+
+  # 3. Grocy ERP
+  grocy:
+    image: lscr.io/linuxserver/grocy:latest
+    container_name: hgs_grocy
+    restart: unless-stopped
+    ports:
+      - "9283:80"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - ./.data/grocy:/config
+
+  # 4. Bridge Translator
+  bridge:
+    build: ./bridge
+    container_name: hgs_bridge
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    environment:
+      - MQTT_BROKER=mosquitto_local
+      - GROCY_URL=http://grocy:80
+      - GROCY_API_KEY=tu_api_key_de_grocy_aqui # Cámbialo cuando configures Grocy
+    depends_on:
+      - mosquitto_local
+      - grocy
