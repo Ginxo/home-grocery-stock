@@ -62,8 +62,7 @@ services:
       - "9000:9000"
     environment:
       - MQTT_BROKER=mosquitto_local
-      - GROCY_URL=http://grocy:80
-      - GROCY_API_KEY=tu_api_key_de_grocy_aqui # Cámbialo cuando configures Grocy
+      - GROCY_URL=http://grocy:80/api
     depends_on:
       - mosquitto_local
       - grocy
