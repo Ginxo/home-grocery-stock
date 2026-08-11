@@ -15,7 +15,7 @@ model:
   labelmap_path: /openvino-model/coco_91cl_bkgr.txt
 
 cameras:
-  zona_frigorifico:
+  fridge_zone:
     ffmpeg:
       inputs:
         - path: '{FRIGATE_RTSP_PATH}'
@@ -26,7 +26,7 @@ cameras:
       enabled: false
       width: 1920
       height: 1080
-      fps: 5 # Bajamos los FPS a 5, es la recomendación oficial de Frigate para no saturar.
+      fps: 5 # Lower FPS to 5; Frigate's official recommendation to avoid overload.
     objects:
       track:
         - bottle

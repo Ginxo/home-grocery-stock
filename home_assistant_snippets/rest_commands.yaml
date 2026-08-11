@@ -1,8 +1,8 @@
 rest_command:
-  # Sustituye 192.168.X.X por la IP de tu portátil ThinkPad
-  nevera_ia_encender:
-    url: "http://192.168.X.X:9000/api/detect/zona_frigorifico/on"
+  # Replace 192.168.X.X with your ThinkPad's IP
+  fridge_ai_enable:
+    url: "http://192.168.X.X:9000/api/detect/fridge_zone/on"
     method: POST
-  nevera_ia_apagar:
-    url: "http://192.168.X.X:9000/api/detect/zona_frigorifico/off"
+  fridge_ai_disable:
+    url: "http://192.168.X.X:9000/api/detect/fridge_zone/off"
     method: POST

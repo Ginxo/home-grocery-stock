@@ -62,7 +62,7 @@ The system runs entirely in local Docker containers, keeping heavy video feeds a
 2. Service Endpoints & Ports
 * Python Bridge Control REST API: `http://<SERVER_IP>:9000`
   * `POST /api/detect/<camera_name>/<state>`
-    * Params: `<camera_name>` (e.g., `zona_frigorifico`), `<state>` (`on` or `off`).
+    * Params: `<camera_name>` (e.g., `fridge_zone`), `<state>` (`on` or `off`).
     * Description: Enables or disables Frigate's object detection on demand.
 
 * Local MQTT Broker: `<SERVER_IP>:1883`
@@ -118,17 +118,17 @@ Simulate Home Assistant sending an "ON" signal to turn on camera detection:
 
 
 ```bash
-curl -X POST http://localhost:9000/api/detect/zona_frigorifico/on
+curl -X POST http://localhost:9000/api/detect/fridge_zone/on
 ```
 
-Expected Output: `{"message":"Command ON sent to zona_frigorifico"}`
+Expected Output: `{"status":"success","message":"Detection ON on fridge_zone"}`
 
 Simulate sending an "OFF" signal when the door closes:
 
 ```bash
-curl -X POST http://localhost:9000/api/detect/zona_frigorifico/off
+curl -X POST http://localhost:9000/api/detect/fridge_zone/off
 ```
-Expected Output: `{"message":"Command OFF sent to zona_frigorifico"}`
+Expected Output: `{"status":"success","message":"Detection OFF on fridge_zone"}`
 
 3. Monitor Logs in Real Time
 

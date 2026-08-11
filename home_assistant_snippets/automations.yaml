@@ -1,19 +1,19 @@
-alias: "Home Grocery Stock: Control IA"
+alias: "Home Grocery Stock: AI Control"
 mode: single
 trigger:
   - platform: state
-    entity_id: binary_sensor.puerta_frigorifico_contact # Tu sensor Aqara
+    entity_id: binary_sensor.fridge_door_contact # Your Aqara sensor
 action:
   - choose:
       - conditions:
           - condition: state
-            entity_id: binary_sensor.puerta_frigorifico_contact
+            entity_id: binary_sensor.fridge_door_contact
             state: "on"
         sequence:
-          - service: rest_command.nevera_ia_encender
+          - service: rest_command.fridge_ai_enable
       - conditions:
           - condition: state
-            entity_id: binary_sensor.puerta_frigorifico_contact
+            entity_id: binary_sensor.fridge_door_contact
             state: "off"
         sequence:
-          - service: rest_command.nevera_ia_apagar
+          - service: rest_command.fridge_ai_disable
