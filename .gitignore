@@ -4,3 +4,8 @@
 .env
 __pycache__/
 *.pyc
+
+# Node / central dashboard
+central/**/node_modules/
+central/frontend/dist/
+central/backend/public/

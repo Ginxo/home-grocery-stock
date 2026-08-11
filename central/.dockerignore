@@ -1,0 +1,7 @@
+node_modules
+frontend/dist
+frontend/node_modules
+backend/node_modules
+backend/public
+*.log
+.git

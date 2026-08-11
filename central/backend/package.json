@@ -1,0 +1,16 @@
+{
+  "name": "home-grocery-stock-central-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BFF for the home-grocery-stock central developer dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "js-yaml": "^4.1.0",
+    "mqtt": "^5.10.4",
+    "socket.io": "^4.8.1"
+  }
+}

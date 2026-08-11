@@ -66,3 +66,21 @@ services:
     depends_on:
       - mosquitto_local
       - grocy
+
+  # 5. Central Dev Dashboard
+  central:
+    build: ./central
+    container_name: home-grocery-stock-central
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - PORT=80
+      - BRIDGE_URL=http://bridge:9000
+      - MQTT_BROKER=mosquitto_local
+      - FRIGATE_CONFIG_PATH=/app/frigate-config.yml
+    volumes:
+      - ./frigate/config.yml:/app/frigate-config.yml:ro
+    depends_on:
+      - bridge
+      - mosquitto_local

@@ -2,3 +2,4 @@ Flask==3.0.0
 waitress==3.0.0
 paho-mqtt==1.6.1
 requests==2.31.0
+flasgger==0.9.7.1

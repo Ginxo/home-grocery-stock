@@ -51,6 +51,10 @@ The system runs entirely in local Docker containers, keeping heavy video feeds a
 
 ## 🌐 Available Routes & Interfaces
 1. Web User Interfaces (GUIs)
+* Central Dev Dashboard: `http://<SERVER_IP>:80`
+
+    Developer console for the stack: service links, Bridge OpenAPI/Swagger, Frigate camera config, Bridge session state, Bridge event logs, and live MQTT traffic.
+
 * Frigate Video & Debug UI: `http://<SERVER_IP>:5000`
 
     View live feeds, set up line crossing/zones, and debug bounding boxes.
@@ -61,6 +65,10 @@ The system runs entirely in local Docker containers, keeping heavy video feeds a
 
 2. Service Endpoints & Ports
 * Python Bridge Control REST API: `http://<SERVER_IP>:9000`
+  * `GET /` — health check with per-camera active flags.
+  * `GET /api/state` — full session state (`active`, active object counts, session changes).
+  * `GET /api/logs` — recent structured success/error/info events (in-memory ring buffer).
+  * `GET /apispec.json` — OpenAPI contract (consumed by Central Swagger UI).
   * `POST /api/detect/<camera_name>/<state>`
     * Params: `<camera_name>` (e.g., `fridge_zone`), `<state>` (`on` or `off`).
     * Description: Enables or disables Frigate's object detection on demand.
@@ -106,7 +114,7 @@ docker compose up -d --build
 ## 🧪 Testing & Verification Commands
 1. Verify Running Services
 
-Check that all 4 containers (`hgs_frigate`, `hgs_grocy`, `hgs_mosquitto`, `hgs_bridge`) are healthy:
+Check that all containers (`hgs_frigate`, `hgs_grocy`, `hgs_mosquitto`, `hgs_bridge`, `home-grocery-stock-central`) are healthy:
 
 ```bash
 docker compose ps
@@ -152,6 +160,83 @@ curl -X POST "http://localhost:9283/api/stock/products/4/consume" \
   -H "Content-Type: application/json" \
   -d '{"amount": 1, "transaction_type": "consume"}'
 ```
+
+## 🛒 Adding a Product (Grocy ↔ Frigate)
+
+The bridge does **not** use Grocy product IDs. When a door session ends, it looks up stock by barcode using the Frigate object **label** as the barcode:
+
+```text
+Frigate label  →  Grocy product barcode  →  /stock/products/by-barcode/{label}
+```
+
+Example: if Frigate tracks `bottle`, Grocy must have a product whose barcode is exactly `bottle`.
+
+### Step 1: Teach Frigate to track the object
+
+Edit `frigate/config.yml` and add the COCO label under the camera’s `objects.track` list. The label must exist in the model’s label map (default OpenVINO model uses `coco_91cl_bkgr.txt`).
+
+```yaml
+cameras:
+  fridge_zone:
+    objects:
+      track:
+        - bottle
+        - cup
+        - # ...existing labels...
+        - apple   # new item
+```
+
+Restart Frigate after changing the config:
+
+```bash
+docker compose restart frigate
+```
+
+You can confirm the camera’s tracked objects in the Central dashboard (`/frigate`) or Frigate UI (`:5000`).
+
+### Step 2: Create the product in Grocy with a matching barcode
+
+1. Open Grocy: `http://<SERVER_IP>:9283`
+2. Go to **Master data → Products** → create a new product (name can be anything human-readable, e.g. “Apple”).
+3. Set the product **Barcode** to the **exact** Frigate label (`apple`, not `Apple` or `apples`).
+4. Optionally set minimum stock so Grocy can alert Home Assistant when levels are low.
+5. Add initial stock if needed (**Stock → Purchase / Inventory**).
+
+The barcode string must match the Frigate label character-for-character (lowercase COCO names).
+
+### Step 3: Verify the link
+
+1. Trigger a detection session (door open / close, or the curl commands above).
+2. Watch the bridge logs:
+
+```bash
+docker logs -f hgs_bridge
+```
+
+Successful updates look like:
+
+```text
+Success: 1x 'apple' added to Grocy.
+Success: 1x 'apple' consumed from Grocy.
+```
+
+If the barcode is missing or mistyped, Grocy returns an error and the bridge logs something like `Error consuming 'apple': ...`.
+
+### How entry / exit is decided
+
+During an active session the bridge watches Frigate MQTT events (`frigate/events`). For each tracked object it compares start vs end zones:
+
+| Start zone | End zone | Effect on session cart |
+|---|---|---|
+| not `outside_zone` | `outside_zone` | −1 (item removed / consume) |
+| `outside_zone` | not `outside_zone` | +1 (item added / purchase) |
+| same side | same side | ignored (ghost flicker) |
+
+When detection turns **off**, net counts are flushed to Grocy via `by-barcode/{label}` (`consume` or `add`).
+
+Zones (`outside_zone`, inside zones, etc.) are configured in Frigate (UI or `frigate/config.yml`). Without those zones, movements will not produce stock changes.
+
+---
 
 ## 🏠 Home Assistant Integration
 
