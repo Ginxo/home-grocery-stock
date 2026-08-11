@@ -1,5 +1,5 @@
-from flask import Flask, jsonify
 from flasgger import Swagger, swag_from
+from flask import Flask, jsonify
 from waitress import serve as waitress_serve
 
 import swagger
@@ -19,29 +19,30 @@ Swagger(app, config=swagger.config, template=swagger.template)
 @app.route("/", methods=["GET"])
 @swag_from(swagger.health)
 def health():
-    return jsonify({
-        "service": "hgs-bridge",
-        "status": "ok",
-        "cameras": {
-            name: {"active": state["active"]}
-            for name, state in cameras_state.items()
-        },
-    }), 200
+    return jsonify(
+        {
+            "service": "hgs-bridge",
+            "status": "ok",
+            "cameras": {name: {"active": state["active"]} for name, state in cameras_state.items()},
+        }
+    ), 200
 
 
 @app.route("/api/state", methods=["GET"])
 @swag_from(swagger.get_state)
 def get_state():
-    return jsonify({
-        "cameras": {
-            name: {
-                "active": state["active"],
-                "active_objects_count": len(state["active_objects"]),
-                "session_changes": dict(state["session_changes"]),
+    return jsonify(
+        {
+            "cameras": {
+                name: {
+                    "active": state["active"],
+                    "active_objects_count": len(state["active_objects"]),
+                    "session_changes": dict(state["session_changes"]),
+                }
+                for name, state in cameras_state.items()
             }
-            for name, state in cameras_state.items()
         }
-    }), 200
+    ), 200
 
 
 @app.route("/api/logs", methods=["GET"])

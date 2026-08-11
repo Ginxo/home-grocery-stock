@@ -1,0 +1,5 @@
+# CI overlay: skip Frigate (heavy / privileged / camera-dependent).
+services:
+  frigate:
+    profiles:
+      - frigate

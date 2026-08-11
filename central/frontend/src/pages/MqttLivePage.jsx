@@ -94,9 +94,7 @@ export default function MqttLivePage() {
               {messages.map((msg, idx) => (
                 <Tr key={`${msg.timestamp}-${msg.topic}-${idx}`}>
                   <Td dataLabel="Timestamp">
-                    {msg.timestamp
-                      ? new Date(msg.timestamp).toLocaleString()
-                      : "—"}
+                    {msg.timestamp ? new Date(msg.timestamp).toLocaleString() : "—"}
                   </Td>
                   <Td dataLabel="Topic">
                     <code>{msg.topic}</code>

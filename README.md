@@ -111,6 +111,50 @@ Edit .env and set your credentials
 docker compose up -d --build
 ```
 
+## CI (Pull Requests)
+
+Every pull request runs [`.github/workflows/pr.yml`](.github/workflows/pr.yml):
+
+1. **Central lint** (parallel) — ESLint + Prettier on `central/frontend` and `central/backend`
+2. **Bridge lint** (parallel) — Ruff check + format on `bridge/`
+3. **Compose smoke** (after both pass) — builds and starts mosquitto, grocy, bridge, and central via `docker-compose.yml` + [`docker-compose.ci.yml`](docker-compose.ci.yml), then runs [`scripts/ci-smoke.sh`](scripts/ci-smoke.sh)
+
+Frigate is **not** started in CI (large image, privileged, camera-dependent). The overlay puts the `frigate` service behind a Compose profile so it stays off unless you explicitly enable it.
+
+### Run the same checks locally
+
+Central:
+
+```bash
+cd central/frontend && npm ci && npm run lint && npm run format:check
+cd ../backend && npm ci && npm run lint && npm run format:check
+```
+
+To auto-fix formatting: `npm run format` in each package.
+
+Bridge:
+
+```bash
+cd bridge
+python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+```
+
+To auto-fix: `.venv/bin/ruff format .` and `.venv/bin/ruff check --fix .`.
+
+Compose smoke (no Frigate):
+
+```bash
+mkdir -p .data/mosquitto/data .data/mosquitto/log .data/grocy
+cp .env.example .env   # or set GROCY_API_KEY / FRIGATE_RTSP_PATH
+docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build
+./scripts/ci-smoke.sh
+docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
+```
+
+The smoke script checks bridge/central health, central→bridge proxy routes, detect on/off state changes, Grocy HTTP reachability, and MQTT broker connectivity.
+
 ## 🧪 Testing & Verification Commands
 1. Verify Running Services
 

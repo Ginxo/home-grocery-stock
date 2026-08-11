@@ -22,9 +22,7 @@ export default function BridgeStatePage() {
     <>
       <PageSection>
         <Title headingLevel="h1">Bridge State</Title>
-        <Content component="p">
-          Live session state per camera (polled every 3s).
-        </Content>
+        <Content component="p">Live session state per camera (polled every 3s).</Content>
       </PageSection>
       <PageSection>
         {loading && !data && <Spinner aria-label="Loading bridge state" />}
@@ -60,12 +58,9 @@ export default function BridgeStatePage() {
                       {cam.active ? "active" : "idle"}
                     </Label>
                   </Td>
-                  <Td dataLabel="Active objects">
-                    {cam.active_objects_count ?? 0}
-                  </Td>
+                  <Td dataLabel="Active objects">{cam.active_objects_count ?? 0}</Td>
                   <Td dataLabel="Session changes">
-                    {cam.session_changes &&
-                    Object.keys(cam.session_changes).length > 0
+                    {cam.session_changes && Object.keys(cam.session_changes).length > 0
                       ? Object.entries(cam.session_changes)
                           .map(([label, count]) => `${label}: ${count}`)
                           .join(", ")

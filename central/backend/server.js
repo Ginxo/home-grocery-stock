@@ -9,8 +9,7 @@ const { Server } = require("socket.io");
 const PORT = Number(process.env.PORT || 80);
 const BRIDGE_URL = (process.env.BRIDGE_URL || "http://bridge:9000").replace(/\/$/, "");
 const MQTT_BROKER = process.env.MQTT_BROKER || "mosquitto_local";
-const FRIGATE_CONFIG_PATH =
-  process.env.FRIGATE_CONFIG_PATH || "/app/frigate-config.yml";
+const FRIGATE_CONFIG_PATH = process.env.FRIGATE_CONFIG_PATH || "/app/frigate-config.yml";
 const MQTT_BUFFER_SIZE = 200;
 const BRIDGE_PROXY_BASE = "/api/bridge/proxy";
 
@@ -36,8 +35,7 @@ async function proxyBridge(res, bridgePath, options = {}) {
       } else if (typeof body === "string") {
         init.body = body;
       } else {
-        fetchHeaders["Content-Type"] =
-          fetchHeaders["Content-Type"] || "application/json";
+        fetchHeaders["Content-Type"] = fetchHeaders["Content-Type"] || "application/json";
         init.body = JSON.stringify(body);
       }
     }

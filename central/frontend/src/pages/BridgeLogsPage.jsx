@@ -42,14 +42,7 @@ function cameraKey(camera) {
   return camera || NO_CAMERA;
 }
 
-function MultiFilterSelect({
-  id,
-  label,
-  options,
-  selected,
-  onChange,
-  placeholder,
-}) {
+function MultiFilterSelect({ id, label, options, selected, onChange, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggle = (toggleRef) => (
@@ -99,7 +92,7 @@ function MultiFilterSelect({
 
 export default function BridgeLogsPage() {
   const { data, error, loading } = usePollingJson("/api/bridge/logs", 5000);
-  const logs = data?.logs || [];
+  const logs = useMemo(() => data?.logs || [], [data?.logs]);
 
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
@@ -120,10 +113,7 @@ export default function BridgeLogsPage() {
       if (selectedLevels.length > 0 && !selectedLevels.includes(level)) {
         return false;
       }
-      if (
-        selectedCameras.length > 0 &&
-        !selectedCameras.includes(cameraKey(entry.camera))
-      ) {
+      if (selectedCameras.length > 0 && !selectedCameras.includes(cameraKey(entry.camera))) {
         return false;
       }
       return true;
@@ -182,8 +172,8 @@ export default function BridgeLogsPage() {
       <PageSection>
         <Title headingLevel="h1">Bridge Logs</Title>
         <Content component="p">
-          Recent bridge events (polled every 5s). Filter by level and camera;
-          click column headers to sort.
+          Recent bridge events (polled every 5s). Filter by level and camera; click column headers
+          to sort.
         </Content>
       </PageSection>
       <PageSection>
@@ -196,8 +186,7 @@ export default function BridgeLogsPage() {
         {!loading && !error && logs.length === 0 && (
           <EmptyState titleText="No log events yet" headingLevel="h2">
             <EmptyStateBody>
-              Bridge has not recorded any structured events in this process
-              lifetime.
+              Bridge has not recorded any structured events in this process lifetime.
             </EmptyStateBody>
           </EmptyState>
         )}
@@ -238,9 +227,7 @@ export default function BridgeLogsPage() {
             </Toolbar>
             {sortedLogs.length === 0 ? (
               <EmptyState titleText="No matching logs" headingLevel="h2">
-                <EmptyStateBody>
-                  No events match the selected filters.
-                </EmptyStateBody>
+                <EmptyStateBody>No events match the selected filters.</EmptyStateBody>
               </EmptyState>
             ) : (
               <Table aria-label="Bridge logs" variant="compact">
@@ -262,14 +249,10 @@ export default function BridgeLogsPage() {
                   {sortedLogs.map((entry, idx) => (
                     <Tr key={`${entry.timestamp}-${idx}`}>
                       <Td dataLabel="Timestamp">
-                        {entry.timestamp
-                          ? new Date(entry.timestamp).toLocaleString()
-                          : "—"}
+                        {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "—"}
                       </Td>
                       <Td dataLabel="Level">
-                        <Label color={levelColor(entry.level)}>
-                          {entry.level || "info"}
-                        </Label>
+                        <Label color={levelColor(entry.level)}>{entry.level || "info"}</Label>
                       </Td>
                       <Td dataLabel="Camera">{entry.camera || "—"}</Td>
                       <Td dataLabel="Message">{entry.message}</Td>
