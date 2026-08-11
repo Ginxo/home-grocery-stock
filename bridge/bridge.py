@@ -25,7 +25,7 @@ event_log = deque(maxlen=200)
 
 
 def log_event(level, message, camera=None):
-    """Record a structured event. level: 'success' | 'error' | 'info'."""
+    """Record a structured event. level: 'success' | 'error' | 'info' | 'debug'."""
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "level": level,
@@ -176,7 +176,7 @@ def on_message(client, userdata, msg):
             else:
                 # FALSE POSITIVE
                 log_event(
-                    "info",
+                    "debug",
                     f"[{camera}] Ignoring ghost flicker of '{label}'.",
                     camera=camera,
                 )
@@ -281,7 +281,7 @@ def get_state():
 
 @app.route('/api/logs', methods=['GET'])
 def get_logs():
-    """Recent bridge event log (successes, errors, info)
+    """Recent bridge event log (successes, errors, info, debug)
     ---
     tags:
       - Logs
@@ -300,7 +300,7 @@ def get_logs():
                     type: string
                   level:
                     type: string
-                    enum: [success, error, info]
+                    enum: [success, error, info, debug]
                   camera:
                     type: string
                     nullable: true
