@@ -60,11 +60,7 @@ function App() {
     <Masthead>
       <MastheadMain>
         <MastheadToggle>
-          <PageToggleButton
-            variant="plain"
-            aria-label="Global navigation"
-            id="nav-toggle"
-          >
+          <PageToggleButton variant="plain" aria-label="Global navigation" id="nav-toggle">
             <RhUiMenuBarsIcon />
           </PageToggleButton>
         </MastheadToggle>
@@ -86,9 +82,7 @@ function App() {
                 key={item.to}
                 itemId={item.to}
                 isActive={
-                  item.end
-                    ? location.pathname === item.to
-                    : location.pathname.startsWith(item.to)
+                  item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
                 }
               >
                 <NavLink to={item.to} end={item.end}>
@@ -103,11 +97,7 @@ function App() {
               isExpanded={bridgeActive}
             >
               {BRIDGE_NAV.map((item) => (
-                <NavItem
-                  key={item.to}
-                  itemId={item.to}
-                  isActive={location.pathname === item.to}
-                >
+                <NavItem key={item.to} itemId={item.to} isActive={location.pathname === item.to}>
                   <NavLink to={item.to}>{item.label}</NavLink>
                 </NavItem>
               ))}

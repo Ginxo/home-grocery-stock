@@ -57,10 +57,7 @@ function CameraActionButton({ detectActive, camName, enabling, disabling, onTogg
 
 export default function FrigateCamerasPage() {
   const { data, error, loading } = usePollingJson("/api/frigate/cameras", 15000);
-  const {
-    data: bridgeState,
-    error: bridgeStateError,
-  } = usePollingJson("/api/bridge/state", 3000);
+  const { data: bridgeState, error: bridgeStateError } = usePollingJson("/api/bridge/state", 3000);
   const cameras = data?.cameras || [];
   const [actionState, setActionState] = React.useState({});
   const [actionMessage, setActionMessage] = React.useState(null);
@@ -74,10 +71,9 @@ export default function FrigateCamerasPage() {
     setActionState((prev) => ({ ...prev, [key]: true }));
     setActionMessage(null);
     try {
-      const res = await fetch(
-        `/api/bridge/detect/${encodeURIComponent(cameraName)}/${state}`,
-        { method: "POST" }
-      );
+      const res = await fetch(`/api/bridge/detect/${encodeURIComponent(cameraName)}/${state}`, {
+        method: "POST",
+      });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(body.error || body.message || `HTTP ${res.status}`);
@@ -107,8 +103,8 @@ export default function FrigateCamerasPage() {
       <PageSection>
         <Title headingLevel="h1">Frigate Cameras</Title>
         <Content component="p">
-          Camera definitions from frigate/config.yml. Enable/disable actions are
-          sent through the bridge, not directly to Frigate.
+          Camera definitions from frigate/config.yml. Enable/disable actions are sent through the
+          bridge, not directly to Frigate.
         </Content>
       </PageSection>
       <PageSection>
@@ -142,9 +138,7 @@ export default function FrigateCamerasPage() {
         )}
         {!loading && !error && cameras.length === 0 && (
           <EmptyState titleText="No cameras found" headingLevel="h2">
-            <EmptyStateBody>
-              The mounted frigate/config.yml has no camera entries.
-            </EmptyStateBody>
+            <EmptyStateBody>The mounted frigate/config.yml has no camera entries.</EmptyStateBody>
           </EmptyState>
         )}
         {cameras.length > 0 && (

@@ -4,6 +4,7 @@
 .env
 __pycache__/
 *.pyc
+.venv/
 
 # Node / central dashboard
 central/**/node_modules/

@@ -1,0 +1,108 @@
+name: PR CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: pr-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  central:
+    name: Central lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            central/frontend/package-lock.json
+            central/backend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: central/frontend
+        run: npm ci
+
+      - name: Frontend lint
+        working-directory: central/frontend
+        run: npm run lint
+
+      - name: Frontend format check
+        working-directory: central/frontend
+        run: npm run format:check
+
+      - name: Install backend dependencies
+        working-directory: central/backend
+        run: npm ci
+
+      - name: Backend lint
+        working-directory: central/backend
+        run: npm run lint
+
+      - name: Backend format check
+        working-directory: central/backend
+        run: npm run format:check
+
+  bridge:
+    name: Bridge lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bridge
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ruff
+        run: pip install -r requirements-dev.txt
+
+      - name: Ruff check
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+  compose_smoke:
+    name: Compose smoke
+    runs-on: ubuntu-latest
+    needs:
+      - central
+      - bridge
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create data directories and CI env
+        run: |
+          mkdir -p .data/mosquitto/data .data/mosquitto/log .data/grocy
+          printf '%s\n' \
+            'FRIGATE_RTSP_PATH=rtsp://unused/stream' \
+            'GROCY_API_KEY=ci-dummy-key' \
+            > .env
+
+      - name: Install jq and mosquitto clients
+        run: sudo apt-get update && sudo apt-get install -y jq mosquitto-clients
+
+      - name: Build and start stack (no Frigate)
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build
+
+      - name: Run smoke checks
+        run: |
+          chmod +x scripts/ci-smoke.sh
+          scripts/ci-smoke.sh
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml logs
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
