@@ -4,6 +4,7 @@ import json
 import os
 import threading
 from flask import Flask, jsonify
+from waitress import serve
 
 # Configuration
 MQTT_BROKER = os.getenv("MQTT_BROKER", "mosquitto_local")
@@ -124,8 +125,20 @@ def on_message(client, userdata, msg):
 app = Flask(__name__)
 mqtt_publisher = mqtt.Client()
 mqtt_publisher.connect(MQTT_BROKER, 1883, 60)
+mqtt_publisher.loop_start()
 
-@app.route('/api/detect/<camera>/<state>', methods=['POST'])
+@app.route('/', methods=['GET'])
+def health():
+    return jsonify({
+        "service": "hgs-bridge",
+        "status": "ok",
+        "cameras": {
+            name: {"active": state["active"]}
+            for name, state in cameras_state.items()
+        },
+    }), 200
+
+@app.route('/api/detect/<camera>/<state_action>', methods=['POST'])
 def toggle_detection(camera, state_action):
     if state_action not in ["on", "off"]:
         return jsonify({"error": "Use 'on' or 'off'"}), 400
@@ -148,7 +161,7 @@ def toggle_detection(camera, state_action):
     return jsonify({"status": "success", "message": f"Detection {payload} on {camera}"}), 200
 
 def run_flask():
-    app.run(host='0.0.0.0', port=9000, use_reloader=False)
+    serve(app, host='0.0.0.0', port=9000)
 
 if __name__ == "__main__":
     print("🚀 Starting HGS Bridge (multi-camera with sessions)...")
